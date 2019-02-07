@@ -33,12 +33,8 @@ def mainPage() {
         section("Automatically lock the door when closed...") {
             input "secondsLater", "number", title: "Delay (in seconds):", required: true
         }
-        if (location.contactBookEnabled || phoneNumber) {
-            section("Notifications") {
-                input("recipients", "contact", title: "Send notifications to", required: false) {
-                    input "phoneNumber", "phone", title: "Warn with text message (optional)", description: "Phone Number", required: false
-                }
-            }
+        section("Notifications") {
+            input "sendPushMessage", "enum", title: "Send a push notification?", metadata:[values:["Yes", "No"]], required: false
         }
         section([mobileOnly:true]) {
             label title: "Assign a name", required: false
@@ -67,15 +63,9 @@ def initialize() {
 def lockDoor() {
     log.debug "Locking the door."
     lock1.lock()
-    if(location.contactBookEnabled) {
-        if (recipients) {
-            log.debug ("Sending Push Notification...") 
-            sendNotificationToContacts("${lock1} locked after ${contact} was closed for ${secondsLater} seconds!", recipients)
-        }
-    }
-    if (phoneNumber) {
-        log.debug("Sending text message...")
-        sendSms(phoneNumber, "${lock1} locked after ${contact} was closed for ${secondsLater} seconds!")
+    if (sendPushMessage) {
+        log.debug "Sending Push Notification..."
+        sendPush "${lock1} locked after ${contact} was closed for ${secondsLater} seconds"
     }
 }
 
